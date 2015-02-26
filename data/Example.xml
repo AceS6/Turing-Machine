@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<TuringMachine>
+ 	<Ribbon>aabb</Ribbon>
+ 	<Σ>ab</Σ>
+	<Q>
+		<State>q0</State>
+		<State>q1</State>
+	</Q>
+	<InitialState>q0</InitialState>
+	<δ>
+		<Function>(q0, a)=(q1, a, R)</Function>
+		<Function>(q0, b)=(q1, a, R)</Function>
+		<Function>(q0, ⊔)=(qRej, ⊔, R)</Function>
+		<Function>(q1, a)=(q1, a, R)</Function>
+ 		<Function>(q1, b)=(q1, a, R)</Function>
+		<Function>(q1, ⊔)=(qAcc, ⊔, R)</Function>
+	</δ>
+  	<BreackpointStates>
+		<State>q1</State>
+	</BreackpointStates>
+</TuringMachine>
