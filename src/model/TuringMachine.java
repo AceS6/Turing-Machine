@@ -10,12 +10,13 @@ import java.io.FileNotFoundException;
 import model.exception.TuringAcceptedException;
 import model.exception.TuringRejectedException;
 
-public class TuringMachine extends Observable {
+public class TuringMachine extends Observable{
 
 	private ArrayList<Character> ribbon;
 	private State currentState;
 	private int head;
 	private PrintResults print;
+	private int speed;
 	
 	public TuringMachine () throws FileNotFoundException {
 		print = new PrintResults();
@@ -50,10 +51,19 @@ public class TuringMachine extends Observable {
 			throw new TuringRejectedException();
 	}
 	
-	public void loop() throws TuringAcceptedException, TuringRejectedException {
+	public void loop() throws TuringAcceptedException, TuringRejectedException{
 		while (true) {
 			step();
 		}
+	}
+	
+	public void loopInStateMode() throws TuringAcceptedException, TuringRejectedException{
+		/*
+		 *  On test si l'état courant est dans 
+		while (currentState.getB) {
+			step();
+		}
+		*/
 	}
 
 	private void printAResult() {
@@ -68,6 +78,14 @@ public class TuringMachine extends Observable {
 			result += ribbon.get(i);
 
 		print.addResult(result);
+	}
+	
+	public void setSpeed(int speed){
+		this.speed = speed;
+	}
+	
+	public int getSpeed(){
+		return speed;
 	}
 	
 }

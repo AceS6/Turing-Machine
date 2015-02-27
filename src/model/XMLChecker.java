@@ -197,6 +197,10 @@ public class XMLChecker {
 
 		return ret;
 	}
+	
+	public ArrayList<State> getBreakPointStates(){
+		return null;
+	}
 
 	public State getInitialStateObject() {
 		return initialState;
