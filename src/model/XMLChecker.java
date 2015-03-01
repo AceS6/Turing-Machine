@@ -24,15 +24,15 @@ public class XMLChecker {
 
 	private static final String BREAKPOINT_STATES = "BreackpointStates";
 
-	private Document configuration;
-
 	private Element root;
 
 	private State initialState;
+	
+	private ArrayList<State> breakpointStates;
 
 	public XMLChecker(Document configuration) {
-		this.configuration = configuration;
 		root = configuration.getRootElement();
+		breakpointStates = new ArrayList<State>();
 	}
 
 	public void checkConfigStructure() throws RuntimeException {
@@ -50,7 +50,7 @@ public class XMLChecker {
 			throw new RuntimeException("The node " + TRANSITION_FUNCTIONS + " is missing. Please insert it like that : <" + TRANSITION_FUNCTIONS + "></" + TRANSITION_FUNCTIONS + ">");
 		if ( root.getChild(BREAKPOINT_STATES) == null )
 			throw new RuntimeException("The node " + BREAKPOINT_STATES + " is missing. Please insert it like that : <" + BREAKPOINT_STATES + "></" + BREAKPOINT_STATES + ">");
-		if ( root.getContentSize() != 13 )
+		if ( root.getChildren().size() != 6 )
 			throw new RuntimeException("There are another nodes in the XML. Please delete it.");
 	}
 
@@ -58,22 +58,26 @@ public class XMLChecker {
 		// Gets ribbon value and alphabet values.
 		String ribbon = root.getChild(RIBBON).getText();
 		String sigma = root.getChild(SIGMA).getText();
-
-		// Avoids to fetch "" in the ribbon when the program checks if the ribbon is in Σ alphabet.
+		
+		// Checks if the blank symbol is in Σ alphabet.
 		if ( !ribbon.equals("") && sigma.equals("") ) 
-			throw new RuntimeException("Error : The alphabet Σ is empty while the ribbon is filled.");
+			throw new RuntimeException("The " + SIGMA + " alphabet is empty while the ribbon is filled.");
+		
+		// Avoids to fetch "" in the ribbon when the program checks if the ribbon is in Σ alphabet.
+		if (sigma.indexOf('⊔') != -1) 
+			throw new RuntimeException("The blank symbol '⊔' can't be in " + SIGMA + " alphabet.");
 
 		// Checks if there are duplicated symbols in Σ alphabet.
 		// The secret of this loop is the formula to find duplicated symbols.
 		// (Length of the alphabet) - (Length of the alphabet without the fetched symbol) = 1 if the symbol is unique in Σ alphabet.
 		for (int i = 0; i < sigma.length(); i++)
 			if (sigma.length() - sigma.replace( Character.toString( sigma.charAt(i) ), "").length() > 1 )
-				throw new RuntimeException("Error : The symbol '" + sigma.charAt(i) + "' is duplicated in Σ aplhabet.");
+				throw new RuntimeException("The symbol '" + sigma.charAt(i) + "' is duplicated in " + SIGMA + " aplhabet.");
 
-		// Checks if every symbols from the ribbon is contained in sigma alphabet.
+		// Checks if every symbols from the ribbon is contained in Σ alphabet.
 		for (int i = 0; i < ribbon.length(); i++)
 			if (sigma.indexOf( ribbon.charAt(i) ) == -1)
-				throw new RuntimeException("Error : The symbol '" + ribbon.charAt(i) + "' from the ribbon is not defined in Σ alphabet.");
+				throw new RuntimeException("The symbol '" + ribbon.charAt(i) + "' from the ribbon is not defined in " + SIGMA + " alphabet.");
 
 
 		// Gets Q, the states set.
@@ -86,37 +90,37 @@ public class XMLChecker {
 			String stateName = currentElement.getText();
 
 			if ( states.containsKey(stateName) )
-				throw new RuntimeException("Error : \"" + stateName + "\" is duplicated in Q.");
+				throw new RuntimeException("\"" + stateName + "\" is duplicated in " + STATES + ".");
 			else if ( stateName.equals("") )
-				throw new RuntimeException("Error : A state have no name. Please input a name.");
+				throw new RuntimeException("A state contained in " + STATES + " has no name.");
 
 			states.put( stateName, new State(stateName) );
 		}
 
 
-		// Checks if there is at least one state inputted in Q.
+		// Checks if there is at least one state inputed in Q.
 		if ( listStates.isEmpty() ) {
-			throw new RuntimeException("Error : Q must have at least one state.");
+			throw new RuntimeException(STATES + " must have at least one state.");
 		}
 
 
-		// Checks if the inital state is inputted.
+		// Checks if the initial state is inputed.
 		if ( root.getChild(INITIAL_STATE).getText().equals("") ) {
-			throw new RuntimeException("Error : q0 must be defined.");
+			throw new RuntimeException("The initial state must be defined with a state from " + STATES + ".");
 		}
 
 		// Checks if the initial state is define in Q.
 		if ( !states.containsKey( root.getChild(INITIAL_STATE).getText() ) )
-			throw new RuntimeException("Error : The initial state \"" + root.getChild(INITIAL_STATE).getText() + "\" is not contained in Q.");
+			throw new RuntimeException("The initial state \"" + root.getChild(INITIAL_STATE).getText() + "\" is not contained in " + STATES + ".");
 
 
-		// Gets the functions transistion set.
+		// Gets the functions transition set.
 		List<Element> listTransitions = root.getChild(TRANSITION_FUNCTIONS).getChildren();
-		// Initializes the regular expression to get the information from the fonction.
+		// Initializes the regular expression to get the information from the function.
 		Pattern p = Pattern.compile("\\s*\\((.*),\\s*(.)\\)\\s*=\\s*\\((.*),\\s*(.),\\s*(R|L)\\)\\s*");
 
 		// Checks if every transition is correct.
-		// If yes, the programm adds to each state the matched transition.
+		// If yes, the program adds to each state the matched transition.
 		for (Element currentElement : listTransitions) {
 			Matcher m = p.matcher( currentElement.getText() );
 
@@ -131,7 +135,7 @@ public class XMLChecker {
 						State transitionState;
 
 						// Checks the transition state.
-						// If it is the accepting state, then the programm puts this unique state.
+						// If it is the accepting state, then the program puts this unique state.
 						if ( m.group(3).equals("qAcc") )
 							transitionState = State.QACC;
 						// The same for rejecting state.
@@ -141,15 +145,15 @@ public class XMLChecker {
 						else if ( states.containsKey( m.group(3) ) )
 							transitionState = states.get( m.group(3) );
 						else
-							throw new RuntimeException("Error : \""  + currentElement.getText() + "\", \"" + m.group(3) + "\" is not the accepting state (qAcc), the rejecting state (qRej) or a state contained in Q.");
+							throw new RuntimeException("\""  + currentElement.getText() + "\", \"" + m.group(3) + "\" is not the accepting state \"qAcc\", the rejecting state \"qRej\" or a state contained in " + STATES + ".");
 
 						// Creates the transition if all is alright.
 						aTransition = new Transition( transitionState, m.group(4).charAt(0), m.group(5).charAt(0) );
 					}
 					else
-						throw new RuntimeException("Error : \""  + currentElement.getText() + "\", '" + m.group(5) + "' is not a right move.");
+						throw new RuntimeException("\""  + currentElement.getText() + "\", '" + m.group(5) + "' is not a correct move. Please input 'R' for right or 'L' for left.");
 				else
-					throw new RuntimeException("Error : \""  + currentElement.getText() + "\", '" + m.group(4) + "' is not a symbol in Σ alphabet or the blank symbol '⊔'.");
+					throw new RuntimeException("\""  + currentElement.getText() + "\", '" + m.group(4) + "' is not a symbol in " + SIGMA + " alphabet or the blank symbol '⊔'.");
 
 				// Checks if the state is defined in Q.
 				if ( states.containsKey( m.group(1) ) ) {
@@ -157,13 +161,13 @@ public class XMLChecker {
 					if (sigma.indexOf( m.group(2) ) != -1 || m.group(2).charAt(0) == '⊔')
 						states.get( m.group(1) ).addTransition(m.group(2).charAt(0), aTransition);
 					else
-						throw new RuntimeException("Error : \""  + currentElement.getText() + "\", '" + m.group(2) + "' is not a symbol in Σ alphabet or the blank symbol '⊔'.");
+						throw new RuntimeException("\""  + currentElement.getText() + "\", '" + m.group(2) + "' is not a symbol in " + SIGMA + " alphabet or the blank symbol '⊔'.");
 				}
 				else
-					throw new RuntimeException("Error : \""  + currentElement.getText() + "\", \"" + m.group(1) + "\" is not a state contained in Q.");
+					throw new RuntimeException("\""  + currentElement.getText() + "\", \"" + m.group(1) + "\" is not a state contained in " + STATES + ".");
 			}
 			else
-				throw new RuntimeException("Error : \""  + currentElement.getText() + "\" has not the correct form. \nPlease input this transition like that for instance	 : (aStateName, a)=(qAcc, ⊔, R). \nDo not forget to put only a symbol or ⊔ for the blank symbol.");
+				throw new RuntimeException("\""  + currentElement.getText() + "\" has not the correct form. \nPlease input this transition like that for instance : (aStateName, a)=(qAcc, ⊔, R).");
 		}
 
 		// Checks if every state has a transition for every symbol contained in Σ alphabet and for the blank symbol '⊔'.
@@ -171,10 +175,10 @@ public class XMLChecker {
 			// Checks for every symbol contained in Σ alphabet.
 			for (int i = 0; i < sigma.length(); i++) 
 				if (currentState.getValue().getTransitions( sigma.charAt(i) ) == null)
-					throw new RuntimeException("Error : The transition with the symbol '" + sigma.charAt(i) + "' for the state \"" + currentState.getKey() + "\" is missing.");
+					throw new RuntimeException("The transition with the symbol '" + sigma.charAt(i) + "' for the state \"" + currentState.getKey() + "\" is missing.");
 			// Checks for the blank symbol '⊔'.
 			if ( currentState.getValue().getTransitions('⊔') == null)
-				throw new RuntimeException("Error : The transition with the blank symbol '⊔' for the state \"" + currentState.getKey() + "\" is missing.");
+				throw new RuntimeException("The transition with the blank symbol '⊔' for the state \"" + currentState.getKey() + "\" is missing.");
 		}
 
 
@@ -182,8 +186,12 @@ public class XMLChecker {
 		List<Element> listBreakpointStates = root.getChild(BREAKPOINT_STATES).getChildren();
 
 		for (Element currentElement : listBreakpointStates)
-			if ( !states.containsKey( currentElement.getText() ) )
-				throw new RuntimeException("Error : \"" + currentElement.getText() + "\" is not a state contained in Q.");
+			if ( currentElement.getText().equals("") )
+				throw new RuntimeException("A state contained in the breakpoint states has no name.");
+			else if ( !states.containsKey( currentElement.getText() ) )
+				throw new RuntimeException("The breakpoint state \"" + currentElement.getText() + "\" is not a state contained in " + STATES + ".");
+			else
+				breakpointStates.add( states.get( currentElement.getText() ) );
 
 		// Initializes the initial state object from the initial state got previously.
 		initialState = states.get( root.getChild(INITIAL_STATE).getText() );
@@ -198,8 +206,8 @@ public class XMLChecker {
 		return ret;
 	}
 	
-	public ArrayList<State> getBreakPointStates(){
-		return null;
+	public ArrayList<State> getBreakpointStatesArrayList(){
+		return breakpointStates;
 	}
 
 	public State getInitialStateObject() {
@@ -212,10 +220,14 @@ public class XMLChecker {
 
 	public String getSigma() {
 		String sigma = root.getChild(SIGMA).getText();
-		String ret = Character.toString( sigma.charAt(0) );
-
-		for (int i = 1; i < sigma.length(); i++)
-			ret += ", " + Character.toString( sigma.charAt(i) );
+		String ret = "";
+		
+		if ( !sigma.equals("") ) {
+			Character.toString( sigma.charAt(0) );
+		
+			for (int i = 1; i < sigma.length(); i++)
+				ret += ", " + Character.toString( sigma.charAt(i) );
+		}
 
 		return ret;
 	}

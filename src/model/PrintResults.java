@@ -12,9 +12,12 @@ public class PrintResults {
 
 	PrintWriter pw;
 
-	public PrintResults() throws FileNotFoundException {
-		pw = new PrintWriter( new File(FILE_PATH) );
-		pw.println("Results from the Turring machine :");
+	public PrintResults() {
+		try {
+			pw = new PrintWriter( new File(FILE_PATH) );
+			pw.println("Results from the Turring machine :");
+		}
+		catch (FileNotFoundException e) {}
 	}
 
 	public void addResult(String result) {

@@ -2,6 +2,7 @@ package control;
 
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.FileNotFoundException;
@@ -12,6 +13,8 @@ import org.jdom2.JDOMException;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JOptionPane;
+import javax.swing.event.ChangeListener;
+import javax.swing.event.ChangeEvent;
 
 import model.TuringMachine;
 import model.XMLReader;
@@ -19,7 +22,7 @@ import model.XMLWriter;
 import model.XMLChecker;
 import view.TuringMachineView;
 
-public class ButtonsListener implements ActionListener {
+public class ButtonsListener implements ActionListener, ChangeListener {
 
     private TuringMachine model;
 
@@ -39,19 +42,19 @@ public class ButtonsListener implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         Object source = e.getSource();
 
-        if (source == view.buttonNew)
+        if ( source == view.getButtonNew() )
             actionButtonNew();
-        else if (source == view.buttonLoad)
+        else if ( source == view.getButtonLoad() )
             actionButtonLoad();
-        else if (source == view.buttonSave)
+        else if ( source == view.getButtonSave() )
             actionButtonSave();
-        else if (source == view.buttonRunStop)
+        else if ( source == view.getButtonRunStop() )
             actionButtonRunStop();
-        else if (source == view.buttonStateMode)
-            actionButtonStateMode();
-        else if (source == view.buttonStartPause)
+        else if ( source == view.getButtonStartPause() )
             actionButtonStartPause();
-        else if (source == view.buttonStep)
+        else if ( source == view.getButtonStateMode() )
+            actionButtonStateMode();
+        else if ( source == view.getButtonStep() )
             actionButtonStep();
     }
 
@@ -60,7 +63,7 @@ public class ButtonsListener implements ActionListener {
 
         try {
             XMLReader reader = new XMLReader(); 
-            text = reader.xmlToString( new File("../data/Example.xml") );
+            text = reader.xmlToString( new File("data/Example.xml") );
         }
         catch (JDOMException|IOException e) {
             JOptionPane.showMessageDialog(view, "The sample file is not found", "Sample file not found", JOptionPane.WARNING_MESSAGE);
@@ -71,7 +74,7 @@ public class ButtonsListener implements ActionListener {
 
     private void actionButtonLoad() {
         fileChooser.setDialogTitle("Open a configuration file");
-            boolean stop = false;
+        boolean stop = false;
 
         while (!stop) {
             if (fileChooser.showOpenDialog(null) == JFileChooser.APPROVE_OPTION)
@@ -126,17 +129,20 @@ public class ButtonsListener implements ActionListener {
 
     private void actionButtonRunStop() {
         try {
-            if ( view.buttonRunStop.getText().equals("Run") ) {
+            if ( view.getButtonRunStop().getText().equals("Run") ) {
                 XMLReader reader = new XMLReader();
                 Document xmlDocument = reader.stringToXml( view.getXMLArea() );
+                
                 XMLChecker checker = new XMLChecker(xmlDocument);
                 checker.checkConfigStructure();
                 checker.checkConfigValues();
-                view.diplayConfiguration( checker.getRibbon(), checker.getSigma(), checker.getStates(), checker.getInitialState(), checker.getTransitionFunctions() );
+                
                 view.setRunMode();
-                model.init( checker.getRibbonArrayList(), checker.getInitialStateObject() );
+                view.diplayConfiguration( checker.getRibbon(), checker.getSigma(), checker.getStates(), checker.getInitialState(), checker.getTransitionFunctions() );
+                model.init( checker.getRibbonArrayList(), checker.getInitialStateObject(), checker.getBreakpointStatesArrayList() );
             }
             else {
+            	view.displayXMLAreaSaved();
                 view.setStopMode();
             }
         }
@@ -148,16 +154,37 @@ public class ButtonsListener implements ActionListener {
         }
     }
 
-    private void actionButtonStateMode() {
-        
-    }
-
     private void actionButtonStartPause() {
-        view.switchButtonStartPause();
+    	if ( view.getButtonStartPause().getText().equals("Start") ) {
+	        view.setPauseMode();
+	        model.loop();
+    	}
+    	else {
+    		view.setStartMode();
+    		model.pauseThread();
+    	}
+    }
+    
+    private void actionButtonStateMode() {
+        if ( model.getStateMode() ) {
+        	view.setStateMode();
+        	model.setStateMode();
+        }
+        else {
+        	view.unsetStateMode();
+        	model.setStateMode();
+        }
     }
 
     private void actionButtonStep() {
-        
+    	try {
+    		model.step();
+    	}
+    	catch (InterruptedException e) {}
     }
+    
+    public void stateChanged(ChangeEvent ev){
+    	model.setSpeed( view.getDelayValue() );
+	}
 
 }

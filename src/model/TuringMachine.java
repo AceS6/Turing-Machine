@@ -1,69 +1,103 @@
 package model;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.regex.Pattern;
 import java.util.Observable;
 
-import java.io.FileNotFoundException;
-
-import model.exception.TuringAcceptedException;
-import model.exception.TuringRejectedException;
-
-public class TuringMachine extends Observable{
+public class TuringMachine extends Observable {
 
 	private ArrayList<Character> ribbon;
 	private State currentState;
+	private ArrayList<State> breakpointStates;
 	private int head;
-	private PrintResults print;
 	private int speed;
+	private boolean stateMode;
+	private Thread thread;
+	private PrintResults print;
 	
-	public TuringMachine () throws FileNotFoundException {
-		print = new PrintResults();
+	public TuringMachine() {
+		stateMode = false;
 	}
 
-	public void init(ArrayList<Character> ribbon, State initialState) {
-		this.ribbon = ribbon;
+	public void init(ArrayList<Character> ribbon, State initialState, ArrayList<State> breakpointStates) {
+		this.ribbon = new ArrayList<Character>();
+		for (char currentChar : ribbon)
+			addSymbol(currentChar);
+			
 		this.currentState = initialState;
+		this.breakpointStates = breakpointStates;
+		
 		head = 0;
-		ribbon.add('⊔');
+		addSymbol('⊔');
+		
+		setChanged();
+        notifyObservers("Move");
+		
+        print = new PrintResults();
 		printAResult();
 	}
+	
+	public void addSymbol(char symbol) {
+		this.ribbon.add(symbol);
+		setChanged();
+        notifyObservers(symbol);
+	}
 
-	public void step() throws TuringAcceptedException, TuringRejectedException {
+	public void step() throws InterruptedException {
 		Transition transition = currentState.getTransitions( ribbon.get(head) );
 		ribbon.set(head, transition.getReplacingCharacter() );
+		
+		setChanged();
+        notifyObservers("Update");
+        
 		currentState = transition.getState();
-
 		head += transition.getMove();
+		
 		if (head < 0) 
 			head = 0;
 		else if ( head == ribbon.size() ) {
-			ribbon.add('⊔');
+			addSymbol('⊔');
 		}
-
-		printAResult();
+		
+		setChanged();
+        notifyObservers("Move");
+        
+        printAResult();
 
 		// Checks if the Turing machine is over.
-		if (currentState == State.QACC)
-			throw new TuringAcceptedException();
-		else if (currentState == State.QREJ)
-			throw new TuringRejectedException();
-	}
-	
-	public void loop() throws TuringAcceptedException, TuringRejectedException{
-		while (true) {
-			step();
+		if (currentState == State.QACC || currentState == State.QREJ) {
+			setChanged();
+       		notifyObservers("Stop");
+       		throw new InterruptedException();
 		}
 	}
 	
-	public void loopInStateMode() throws TuringAcceptedException, TuringRejectedException{
-		/*
-		 *  On test si l'état courant est dans 
-		while (currentState.getB) {
-			step();
-		}
-		*/
+	public void loop() {
+		thread = new Thread() {
+			
+			public void run() {
+				while ( !isInterrupted() ) {
+					try	{
+						step();
+						sleep(speed);
+						
+						if ( stateMode && breakpointStates.contains(currentState) ) {
+							pauseThread();
+						}
+					}
+					catch (InterruptedException e) {
+						Thread.currentThread().interrupt();
+					}
+				}
+			}
+		};
+		
+		thread.start();
+	}
+	
+	public void pauseThread() {
+		setChanged();
+        notifyObservers("Pause");
+		thread.interrupt();
 	}
 
 	private void printAResult() {
@@ -80,12 +114,31 @@ public class TuringMachine extends Observable{
 		print.addResult(result);
 	}
 	
-	public void setSpeed(int speed){
+	public int getHead() {
+		return head;
+	}
+	
+	public char getCurrentSymbol() {
+		return ribbon.get(head);
+	}
+	
+	public State getCurrentState() {
+		return currentState;
+	}
+	
+	public void setSpeed(int speed) {
 		this.speed = speed;
 	}
 	
-	public int getSpeed(){
+	public int getSpeed() {
 		return speed;
 	}
 	
+	public void setStateMode() {
+		stateMode = !stateMode;
+	}
+	
+	public boolean getStateMode() {
+		return stateMode;
+	}
 }
