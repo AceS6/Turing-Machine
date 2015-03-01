@@ -1,6 +1,7 @@
 package model;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.PrintWriter;
 import java.io.FileNotFoundException;
 
@@ -8,24 +9,28 @@ public class PrintResults {
 
 	private static final String FILE_NAME = "results";
 	
-	private static final String FILE_PATH = "../" + FILE_NAME + ".txt";
+	public static final String FILE_PATH = "../" + FILE_NAME + ".txt";
 
-	PrintWriter pw;
+	private File resultsFile;
 
 	public PrintResults() {
+		resultsFile = new File(FILE_PATH);
+		
 		try {
-			pw = new PrintWriter( new File(FILE_PATH) );
+			PrintWriter pw = new PrintWriter(resultsFile);
 			pw.println("Results from the Turring machine :");
+			pw.close();
 		}
 		catch (FileNotFoundException e) {}
 	}
 
 	public void addResult(String result) {
-		pw.println(result);
-	}
-
-	public void close() {
-		pw.close();
+		try {
+			PrintWriter pw = new PrintWriter( new FileOutputStream(resultsFile, true) );
+			pw.println(result);
+			pw.close();
+		}
+		catch (FileNotFoundException e) {}
 	}
 
 }

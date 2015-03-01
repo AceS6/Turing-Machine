@@ -18,6 +18,7 @@ import javax.swing.BoxLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.BorderLayout;
+import java.awt.Font;
 import java.awt.GridBagLayout;
 
 import java.util.Hashtable;
@@ -168,6 +169,7 @@ public class TuringMachineView extends JFrame implements Observer {
 		buttonResults.setBackground(Color.WHITE);
 		buttonResults.setToolTipText("See the results file");
 		buttonResults.setBorder( new EmptyBorder(5, 5, 5, 5) );
+		buttonResults.setEnabled(false);
 
 		// Initializes buttons.
 		setStopMode();
@@ -233,6 +235,8 @@ public class TuringMachineView extends JFrame implements Observer {
 		currentState.setEnabled(false);
 		currentState.setMaximumSize( new Dimension(200, 20) );
 		currentState.setPreferredSize( new Dimension(0, 20) );
+		Font boldFont = new Font( currentState.getFont().getName(), Font.BOLD, currentState.getFont().getSize() );
+		currentState.setFont(boldFont);
 
 		ribbonScroll.setViewportView(ribbonPanel);
 		ribbonScroll.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -305,9 +309,11 @@ public class TuringMachineView extends JFrame implements Observer {
 		buttonStartPause.setEnabled(true);
 		buttonStep.setEnabled(true);
 		buttonStateMode.setEnabled(true);
+		buttonResults.setEnabled(true);
 		configuration.setEditable(false);
 		configuration.setBackground(null);
 		
+		currentState.setBackground(Color.WHITE);
 		xmlAreaSave = configuration.getText();
 		ribbon.clear();
 		ribbonPanel.removeAll();
@@ -329,7 +335,6 @@ public class TuringMachineView extends JFrame implements Observer {
 		buttonStartPause.setEnabled(false);
 		buttonStep.setEnabled(false);
 		buttonStateMode.setEnabled(false);
-		buttonResults.setEnabled(false);
 		configuration.setEditable(true);
 		configuration.setBackground(Color.WHITE);
 	}
@@ -340,10 +345,6 @@ public class TuringMachineView extends JFrame implements Observer {
 	
 	public void unsetStateMode() {
 		buttonStateMode.setBackground(Color.GREEN);
-	}
-	
-	public void setResultsFile() {
-		buttonResults.setEnabled(true);
 	}
 
 	public void setStartMode() {
@@ -378,6 +379,13 @@ public class TuringMachineView extends JFrame implements Observer {
 		else if ( arg.equals("Move") ) {
 			currentState.setText( model.getCurrentState().getName() );
 			
+			if ( currentState.getText().equals("qAcc") ) {
+				currentState.setBackground(Color.GREEN);
+			}
+			else if ( currentState.getText().equals("qRej") ) {
+				currentState.setBackground(Color.RED);
+			}
+			
 			JTextField currentSymbol = ribbon.get( model.getHead() );
 			currentSymbol.setMinimumSize( new Dimension(50, 50) );
 			currentSymbol.setPreferredSize( new Dimension(50, 50) );
@@ -389,7 +397,6 @@ public class TuringMachineView extends JFrame implements Observer {
 		}
 		else if ( arg.equals("Stop") ) {
 			setStopMode();
-			setResultsFile();
 			displayXMLAreaSaved();
 		}
 		else {

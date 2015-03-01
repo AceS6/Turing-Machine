@@ -1,5 +1,6 @@
 package control;
 
+import java.awt.Desktop;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 
@@ -16,6 +17,7 @@ import javax.swing.JOptionPane;
 import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
 
+import model.PrintResults;
 import model.TuringMachine;
 import model.XMLReader;
 import model.XMLWriter;
@@ -56,6 +58,8 @@ public class ButtonsListener implements ActionListener, ChangeListener {
             actionButtonStateMode();
         else if ( source == view.getButtonStep() )
             actionButtonStep();
+        else if ( source == view.getButtonResults() )
+            actionButtonResults();
     }
 
     private void actionButtonNew() {
@@ -181,6 +185,14 @@ public class ButtonsListener implements ActionListener, ChangeListener {
     		model.step();
     	}
     	catch (InterruptedException e) {}
+    }
+    
+    private void actionButtonResults() {
+    	try {
+			Desktop.getDesktop().open( new File(PrintResults.FILE_PATH) );
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(view, "The results file is not found.", "Results file not found", JOptionPane.ERROR_MESSAGE);
+		}
     }
     
     public void stateChanged(ChangeEvent ev){
