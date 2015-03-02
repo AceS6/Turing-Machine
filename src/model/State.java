@@ -21,6 +21,10 @@ public class State {
 		transitions.put(character, transition);
 	}
 	
+	public HashMap<Character, Transition> getTransitions() {
+		return transitions;
+	}
+	
 	public Transition getTransitions(Character character) {
 		return transitions.get(character);
 	}

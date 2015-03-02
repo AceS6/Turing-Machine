@@ -6,7 +6,17 @@ public class Transition {
 	private char replacingCharacter;
 	private char direction;
 	
-	public Transition(State state, char replacingCharacter, char direction) {
+	public Transition(State state, char replacingCharacter, char direction){
+		
+		if(direction != 'R' && direction != 'L'){
+			throw new IllegalArgumentException("The direction provided is not good. It should be 'R' or 'L'");
+		}
+		
+		if(state == null){
+			throw new IllegalArgumentException("The state provided is null");
+		}
+
+		
 		this.state = state;
 		this.replacingCharacter = replacingCharacter;
 		this.direction = direction;
