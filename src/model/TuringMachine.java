@@ -23,6 +23,9 @@ public class TuringMachine extends Observable {
 		for (char currentChar : ribbon)
 			addSymbol(currentChar);
 			
+		if(initialState.getTransitions().size() == 0){
+			throw new IllegalArgumentException("The initial state has no transitions declared. Please provide a State with initialised transitions.");
+		}
 		this.currentState = initialState;
 		this.breakpointStates = breakpointStates;
 		
