@@ -13,8 +13,6 @@ import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.FileNotFoundException;
-import java.net.URL;
-import java.net.URLDecoder;
 
 import org.jdom2.Document;
 import org.jdom2.JDOMException;
