@@ -12,7 +12,7 @@ public class TestState extends TestCase{
 	@Test
 	public static void testConstructor(){
 		State q1 = new State("q1");
-		assertEquals(q1.getName(),"q1");
+		assertEquals(q1.getName(), "q1");
 		assertNotNull(q1.getTransitions());
 	}
 	

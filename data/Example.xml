@@ -15,7 +15,7 @@
  		<Function>(q1, b)=(q1, a, R)</Function>
 		<Function>(q1, ⊔)=(qAcc, ⊔, R)</Function>
 	</δ>
-  	<BreackpointStates>
+  	<BreakpointStates>
 		<State>q1</State>
-	</BreackpointStates>
+	</BreakpointStates>
 </TuringMachine>

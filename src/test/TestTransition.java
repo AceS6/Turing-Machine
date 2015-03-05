@@ -2,11 +2,8 @@ package test;
 
 import static org.junit.Assert.*;
 
-import org.junit.Rule;
 import org.junit.Test;
-import org.junit.rules.ExpectedException;
 
-import junit.framework.TestCase;
 import model.State;
 import model.Transition;
 
@@ -16,7 +13,7 @@ public class TestTransition{
 	public void testConstructor1(){
 		Transition t1 = new Transition(new State("q1"), 'c', 'R');
 		assertNotNull(t1.getState());
-		assertEquals(t1.getReplacingCharacter(), 'c');
+		assertEquals(t1.getReplacingSymbol(), 'c');
 		assertEquals(t1.getMove(), 1);
 		Transition t2 = new Transition(new State("q1"), 'c', 'L');
 		assertEquals(t2.getMove(), -1);
@@ -40,7 +37,7 @@ public class TestTransition{
 	public void testGetReplacingCharacter(){
 		State s1 = new State("q1");
 		Transition t1 = new Transition(s1, 'c', 'R');
-		assertEquals('c', t1.getReplacingCharacter());
+		assertEquals('c', t1.getReplacingSymbol());
 	}
 	
 	@Test

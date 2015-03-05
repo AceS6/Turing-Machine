@@ -1,3 +1,9 @@
+/*
+ * M4105C - Théorie du langage
+ *
+ * class XMLChecker.java
+ */
+
 package model;
 
 import java.util.ArrayList;
@@ -10,31 +16,81 @@ import java.util.regex.Matcher;
 import org.jdom2.Document;
 import org.jdom2.Element;
 
+/**
+ * This class checks if an XML file has a valid configuration for the Turing machine.
+ * It uses the JDOM library.
+ *
+ * @version 1.0 - 02/03/15
+ * @author BUSSENEAU Alexis - GRANIER Tristan - SAURAY Antoine
+ */
 public class XMLChecker {
+	
+	/*	----- ATTRIBUTES -----	*/
 
+	/**
+	 * The ribbon node name.
+	 */
 	private static final String RIBBON = "Ribbon";
-
+	
+	/**
+	 * The sigma node name.
+	 */
 	private static final String SIGMA = "Σ";
-
+	
+	/**
+	 * The states node name.
+	 */
 	private static final String STATES = "Q";
-
+	
+	/**
+	 * The initial state node name.
+	 */
 	private static final String INITIAL_STATE = "InitialState";
-
+	
+	/**
+	 * The transition functions node name.
+	 */
 	private static final String TRANSITION_FUNCTIONS = "δ";
-
-	private static final String BREAKPOINT_STATES = "BreackpointStates";
-
+	
+	/**
+	 * The breakpoint states node name.
+	 */
+	private static final String BREAKPOINT_STATES = "BreakpointStates";
+	
+	/**
+	 * The root node of the document file.
+	 */
 	private Element root;
-
+	
+	/**
+	 * The initialState loaded.
+	 */
 	private State initialState;
 	
+	/**
+	 * The list of breakpoint states loaded.
+	 */
 	private ArrayList<State> breakpointStates;
 
+	
+	/*	----- CONSTRUCTOR -----	*/
+	
+	/**
+	 * Creates an XMLchecker from the specified XML document to check.
+	 * 
+	 * @param configuration The XML document to check.
+	 */
 	public XMLChecker(Document configuration) {
+		// Gets the root element from the document.
 		root = configuration.getRootElement();
 		breakpointStates = new ArrayList<State>();
 	}
 
+	/**
+	 * Checks the configuration structure.
+	 * 
+	 * @throws RuntimeException If the configuration structure is not valid. (One node is missing or there are another nodes).
+	 */
 	public void checkConfigStructure() throws RuntimeException {
 		if ( !root.getName().equals("TuringMachine") )
 			throw new RuntimeException("The root node must have \"TuringMachine\" as name. Please correct it.");
@@ -54,6 +110,11 @@ public class XMLChecker {
 			throw new RuntimeException("There are another nodes in the XML. Please delete it.");
 	}
 
+	/**
+	 * Checks if every values containing (or not) in the XML is valid or missing.
+	 * 
+	 * @throws RuntimeException If an error is found.
+	 */
 	public void checkConfigValues() throws RuntimeException {
 		// Gets ribbon value and alphabet values.
 		String ribbon = root.getChild(RIBBON).getText();
@@ -135,7 +196,7 @@ public class XMLChecker {
 						State transitionState;
 
 						// Checks the transition state.
-						// If it is the accepting state, then the program puts this unique state.
+						// If it is the accepting state, then the application puts this unique state.
 						if ( m.group(3).equals("qAcc") )
 							transitionState = State.QACC;
 						// The same for rejecting state.
@@ -147,7 +208,7 @@ public class XMLChecker {
 						else
 							throw new RuntimeException("\""  + currentElement.getText() + "\", \"" + m.group(3) + "\" is not the accepting state \"qAcc\", the rejecting state \"qRej\" or a state contained in " + STATES + ".");
 
-						// Creates the transition if all is alright.
+						// Creates the transition if all is all right.
 						aTransition = new Transition( transitionState, m.group(4).charAt(0), m.group(5).charAt(0) );
 					}
 					else
@@ -196,35 +257,67 @@ public class XMLChecker {
 		// Initializes the initial state object from the initial state got previously.
 		initialState = states.get( root.getChild(INITIAL_STATE).getText() );
 	}
+	
+	
+	/*	----- ACCESSORS -----	*/
 
+	/**
+	 * Gets the ribbon symbols from the XML configuration.
+	 * 
+	 * @return The list of ribbon symbol.
+	 */
 	public ArrayList<Character> getRibbonArrayList() {
 		ArrayList<Character> ret = new ArrayList<Character>();
 
+		// Converts the ribbon string in array and puts it in the ArrayList with the foreach.
 		for ( char currentChar : root.getChild(RIBBON).getText().toCharArray() )
 			ret.add(currentChar);
 
 		return ret;
 	}
 	
+	/**
+	 * Gets the list of the breakpoint states from the XML configuration.
+	 * 
+	 * @return The list of the breakpoint states.
+	 */
 	public ArrayList<State> getBreakpointStatesArrayList(){
 		return breakpointStates;
 	}
 
+	/**
+	 * Gets the initial state of the XML configuration.
+	 * 
+	 * @return The initial state.
+	 */
 	public State getInitialStateObject() {
 		return initialState;
 	}
 	
+	/**
+	 * Gets the ribbon into a string.
+	 * 
+	 * @return The ribbon in string format.
+	 */
 	public String getRibbon() {
 		return root.getChild(RIBBON).getText();
 	}
 
+	/**
+	 * Gets the sigma alphabet into a string.
+	 * 
+	 * @return The sigma alphabet in string format.
+	 */
 	public String getSigma() {
 		String sigma = root.getChild(SIGMA).getText();
 		String ret = "";
 		
+		// Avoids to fetch into an empty alphabet.
 		if ( !sigma.equals("") ) {
-			Character.toString( sigma.charAt(0) );
+			// Gets the first symbol of the alphabet.
+			sigma += Character.toString( sigma.charAt(0) );
 		
+			// And add the others if exist.
 			for (int i = 1; i < sigma.length(); i++)
 				ret += ", " + Character.toString( sigma.charAt(i) );
 		}
@@ -232,20 +325,37 @@ public class XMLChecker {
 		return ret;
 	}
 
+	/**
+	 * Gets the list of states name into a string.
+	 * 
+	 * @return The list of states name in string format.
+	 */
 	public String getStates() {
+		// Gets the list of states.
 		List<Element> listStates = root.getChild(STATES).getChildren();
 		String ret = listStates.get(0).getText();
 
+		// And gets its name for each state of the list.
 		for (int i = 1; i < listStates.size(); i++)
 			ret += ", " + listStates.get(i).getText();
 
 		return ret;
 	}
 
+	/**
+	 * Gets the initial state name into a string.
+	 * 
+	 * @return The initial state name in string format.
+	 */
 	public String getInitialState() {
 		return root.getChild(INITIAL_STATE).getText();
 	}
 
+	/**
+	 * Gets the transition functions into a string.
+	 * 
+	 * @return The transition functions in string format.
+	 */
 	public String getTransitionFunctions() {
 		List<Element> listTransitions = root.getChild(TRANSITION_FUNCTIONS).getChildren();
 		String ret = listTransitions.get(0).getText();

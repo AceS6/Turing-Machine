@@ -53,7 +53,6 @@ public class TestTuringMachine {
 		try {
 			tm.step();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		assertEquals(tm.getCurrentSymbol(), 'b');
@@ -94,7 +93,6 @@ public class TestTuringMachine {
 		try {
 			tm.step();
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		assertEquals(tm.getCurrentSymbol(), 'b');
